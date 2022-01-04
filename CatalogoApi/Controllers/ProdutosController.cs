@@ -1,6 +1,7 @@
 using CatalogoApi.Context;
 using CatalogoApi.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,7 +21,15 @@ namespace CatalogoApi.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Produto>> Get()
         {
-            return _context.Produtos.ToList();
+            return _context.Produtos.AsNoTracking().ToList();
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<Produto> Get(int id)
+        {
+            var produto = _context.Produtos.AsNoTracking().FirstOrDefault(x => x.ProdutoId == id);
+
+            return produto is null ? NotFound() : produto;
         }
     }
 }
