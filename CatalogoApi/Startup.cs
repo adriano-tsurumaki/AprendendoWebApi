@@ -27,13 +27,8 @@ namespace CatalogoApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string mySqlConnection = Configuration.GetConnectionString("DefaultConnection");
-
             services.AddDbContext<AppDbContext>(options => 
-                options.UseMySql(
-                    mySqlConnection, 
-                    ServerVersion.AutoDetect(mySqlConnection)
-                )
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
             );
 
             services.AddControllers();
