@@ -1,5 +1,6 @@
 using CatalogoApi.Context;
 using CatalogoApi.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -21,48 +22,88 @@ namespace CatalogoApi.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Produto>> Get()
         {
-            return _context.Produtos.AsNoTracking().ToList();
+            try
+            {
+                return _context.Produtos.AsNoTracking().ToList();
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                   "Erro ao tentar obter os produtos");
+            }
         }
 
         [HttpGet("{id}", Name = "ObterProduto")]
         public ActionResult<Produto> Get(int id)
         {
-            var produto = _context.Produtos.AsNoTracking().FirstOrDefault(x => x.ProdutoId == id);
+            try
+            {
+                var produto = _context.Produtos.AsNoTracking().FirstOrDefault(x => x.ProdutoId == id);
 
-            return produto is null ? NotFound() : produto;
+                return produto is null ? NotFound($"O produto com id = {id} não foi encontrado") : produto;
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                   "Erro ao tentar obter o produto");
+            }
         }
 
         [HttpPost]
         public ActionResult Post([FromBody] Produto produto)
         {
-            _context.Produtos.Add(produto);
-            _context.SaveChanges();
+            try
+            {
+                _context.Produtos.Add(produto);
+                _context.SaveChanges();
 
-            return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
+                return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                   "Erro ao tentar criar um novo produto");
+            }
         }
 
         [HttpPut("{id}")]
         public ActionResult Put(int id, [FromBody] Produto produto)
         {
-            if (id != produto.ProdutoId) return BadRequest();
+            try
+            {
+                if (id != produto.ProdutoId) return BadRequest($"Não foi possível atualizar o produto com id = {id}");
 
-            _context.Entry(produto).State = EntityState.Modified;
-            _context.SaveChanges();
+                _context.Entry(produto).State = EntityState.Modified;
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok();
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"Erro ao tentar atualizar o produto com id = {id}");
+            }
         }
 
         [HttpDelete("{id}")]
         public ActionResult<Produto> Delete(int id)
         {
-            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+            try
+            {
+                var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
 
-            if (produto is null) return NotFound();
+                if (produto is null) return NotFound($"O produto com id = {id} não foi encontrado");
 
-            _context.Produtos.Remove(produto);
-            _context.SaveChanges();
+                _context.Produtos.Remove(produto);
+                _context.SaveChanges();
 
-            return produto;
+                return produto;
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                   $"Erro ao tentar excluir o produto com id = {id}");
+            }
         }
     }
 }
