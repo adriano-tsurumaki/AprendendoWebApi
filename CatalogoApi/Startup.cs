@@ -1,4 +1,5 @@
 using CatalogoApi.Context;
+using CatalogoApi.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,8 @@ namespace CatalogoApi
             services.AddDbContext<AppDbContext>(options => 
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
             );
+
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services
                 .AddControllers()
