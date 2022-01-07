@@ -1,8 +1,7 @@
-using CatalogoApi.Context;
 using CatalogoApi.Models;
+using CatalogoApi.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,11 +11,17 @@ namespace CatalogoApi.Controllers
     [ApiController]
     public class ProdutosController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IUnitOfWork _uof;
 
-        public ProdutosController(AppDbContext context)
+        public ProdutosController(IUnitOfWork uof)
         {
-            _context = context;
+            _uof = uof;
+        }
+
+        [HttpGet("menorpreco")]
+        public ActionResult<IEnumerable<Produto>> GetProdutosPrecos()
+        {
+            return _uof.ProdutoRepository.GetProdutosPorPreco().ToList();
         }
 
         [HttpGet]
@@ -24,7 +29,7 @@ namespace CatalogoApi.Controllers
         {
             try
             {
-                return _context.Produtos.AsNoTracking().ToList();
+                return _uof.ProdutoRepository.Get().ToList();
             }
             catch
             {
@@ -38,7 +43,7 @@ namespace CatalogoApi.Controllers
         {
             try
             {
-                var produto = _context.Produtos.AsNoTracking().FirstOrDefault(x => x.ProdutoId == id);
+                var produto = _uof.ProdutoRepository.GetById(p => p.ProdutoId == id);
 
                 return produto is null ? NotFound($"O produto com id = {id} não foi encontrado") : produto;
             }
@@ -54,8 +59,8 @@ namespace CatalogoApi.Controllers
         {
             try
             {
-                _context.Produtos.Add(produto);
-                _context.SaveChanges();
+                _uof.ProdutoRepository.Add(produto);
+                _uof.Commit();
 
                 return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
             }
@@ -73,8 +78,8 @@ namespace CatalogoApi.Controllers
             {
                 if (id != produto.ProdutoId) return BadRequest($"Não foi possível atualizar o produto com id = {id}");
 
-                _context.Entry(produto).State = EntityState.Modified;
-                _context.SaveChanges();
+                _uof.ProdutoRepository.Update(produto);
+                _uof.Commit();
 
                 return Ok();
             }
@@ -90,12 +95,12 @@ namespace CatalogoApi.Controllers
         {
             try
             {
-                var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+                var produto = _uof.ProdutoRepository.GetById(p => p.ProdutoId == id);
 
                 if (produto is null) return NotFound($"O produto com id = {id} não foi encontrado");
 
-                _context.Produtos.Remove(produto);
-                _context.SaveChanges();
+                _uof.ProdutoRepository.Delete(produto);
+                _uof.Commit();
 
                 return produto;
             }
