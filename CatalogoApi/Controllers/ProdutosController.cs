@@ -5,6 +5,7 @@ using CatalogoApi.Pagination;
 using CatalogoApi.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -36,7 +37,19 @@ namespace CatalogoApi.Controllers
         {
             try
             {
-                var produtos = _uof.ProdutoRepository.GetProdutos(produtosParameters).ToList();
+                var produtos = _uof.ProdutoRepository.GetProdutos(produtosParameters);
+
+                var metadata = new
+                {
+                    produtos.TotalCount,
+                    produtos.PageSize,
+                    produtos.CurrentPage,
+                    produtos.TotalPages,
+                    produtos.HasNext,
+                    produtos.HasPrevious
+                };
+
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
 
                 var produtosDto = _mapper.Map<List<ProdutoDTO>>(produtos);
                 return produtosDto;
