@@ -1,5 +1,6 @@
 using CatalogoApi.Context;
 using CatalogoApi.Models;
+using CatalogoApi.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,11 +13,11 @@ namespace CatalogoApi.Controllers
     [ApiController]
     public class CategoriasController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IUnitOfWork _uof;
 
-        public CategoriasController(AppDbContext context)
+        public CategoriasController(IUnitOfWork uof)
         {
-            _context = context;
+            _uof = uof;
         }
 
         [HttpGet("produtos")]
@@ -24,7 +25,7 @@ namespace CatalogoApi.Controllers
         {
             try
             {
-                return _context.Categorias.Include(x => x.Produtos).ToList();
+                return _uof.CategoriaRepository.GetCategoriasProdutos().ToList();
             }
             catch
             {
@@ -38,7 +39,7 @@ namespace CatalogoApi.Controllers
         {
             try
             {
-                return _context.Categorias.AsNoTracking().ToList();
+                return _uof.CategoriaRepository.Get().ToList();
             }
             catch
             {
@@ -52,7 +53,7 @@ namespace CatalogoApi.Controllers
         {
             try
             {
-                var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
+                var categoria = _uof.CategoriaRepository.GetById(c => c.CategoriaId == id);
 
                 return categoria is null ? 
                     NotFound($"A categoria com id = {id} não foi encontrada!") : 
@@ -70,8 +71,8 @@ namespace CatalogoApi.Controllers
         {
             try
             {
-                _context.Categorias.Add(categoria);
-                _context.SaveChanges();
+                _uof.CategoriaRepository.Add(categoria);
+                _uof.Commit();
 
                 return new CreatedAtRouteResult("ObterCategoria", new { id = categoria.CategoriaId }, categoria);
             }
@@ -89,8 +90,8 @@ namespace CatalogoApi.Controllers
             {
                 if (id != categoria.CategoriaId) return BadRequest($"Não foi possível atualizar a categoria com id = {id}");
 
-                _context.Entry(categoria).State = EntityState.Modified;
-                _context.SaveChanges();
+                _uof.CategoriaRepository.Update(categoria);
+                _uof.Commit();
 
                 return Ok();
             }
@@ -107,12 +108,12 @@ namespace CatalogoApi.Controllers
         {
             try
             {
-                var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
+                var categoria = _uof.CategoriaRepository.GetById(c => c.CategoriaId == id);
 
                 if (categoria is null) return NotFound($"A categoria com id = {id} não foi encontrada");
 
-                _context.Categorias.Remove(categoria);
-                _context.SaveChanges();
+                _uof.CategoriaRepository.Delete(categoria);
+                _uof.Commit();
 
                 return categoria;
             }
