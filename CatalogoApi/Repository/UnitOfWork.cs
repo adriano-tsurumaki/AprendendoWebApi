@@ -1,4 +1,5 @@
 using CatalogoApi.Context;
+using System.Threading.Tasks;
 
 namespace CatalogoApi.Repository
 {
@@ -29,9 +30,9 @@ namespace CatalogoApi.Repository
             }
         }
 
-        public void Commit()
+        public async Task Commit()
         {
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
         public void Dispose()

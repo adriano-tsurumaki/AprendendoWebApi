@@ -1,8 +1,10 @@
 using CatalogoApi.Context;
 using CatalogoApi.Models;
 using CatalogoApi.Pagination;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CatalogoApi.Repository
 {
@@ -21,9 +23,9 @@ namespace CatalogoApi.Repository
                 produtosParameters.PageSize);
         }
 
-        public IEnumerable<Produto> GetProdutosPorPreco()
+        public async Task<IEnumerable<Produto>> GetProdutosPorPreco()
         {
-            return Get().OrderBy(c => c.Preco).ToList();
+            return await Get().OrderBy(c => c.Preco).ToListAsync();
         }
     }
 }
