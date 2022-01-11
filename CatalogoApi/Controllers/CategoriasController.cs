@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CatalogoApi.Controllers
 {
@@ -25,11 +26,11 @@ namespace CatalogoApi.Controllers
         }
 
         [HttpGet("produtos")]
-        public ActionResult<IEnumerable<CategoriaDTO>> GetCategoriasComProdutos()
+        public async Task<ActionResult<IEnumerable<CategoriaDTO>>> GetCategoriasComProdutos()
         {
             try
             {
-                var categorias = _uof.CategoriaRepository.GetCategoriasProdutos().ToList();
+                var categorias = await _uof.CategoriaRepository.GetCategoriasProdutos();
                 var categoriasDto = _mapper.Map<List<CategoriaDTO>>(categorias);
 
                 return categoriasDto;
@@ -71,11 +72,11 @@ namespace CatalogoApi.Controllers
         }
 
         [HttpGet("{id}", Name = "ObterCategoria")]
-        public ActionResult<CategoriaDTO> Get(int id)
+        public async Task<ActionResult<CategoriaDTO>> Get(int id)
         {
             try
             {
-                var categoria = _uof.CategoriaRepository.GetById(c => c.CategoriaId == id);
+                var categoria = await _uof.CategoriaRepository.GetById(c => c.CategoriaId == id);
 
                 return categoria is null ? 
                     NotFound($"A categoria com id = {id} não foi encontrada!") : 
@@ -89,14 +90,14 @@ namespace CatalogoApi.Controllers
         }
 
         [HttpPost]
-        public ActionResult Post([FromBody] CategoriaDTO categoriaDto)
+        public async Task<ActionResult> Post([FromBody] CategoriaDTO categoriaDto)
         {
             try
             {
                 var categoria = _mapper.Map<Categoria>(categoriaDto);
 
                 _uof.CategoriaRepository.Add(categoria);
-                _uof.Commit();
+                await _uof.Commit();
 
                 var categoriaDTO = _mapper.Map<CategoriaDTO>(categoria);
 
@@ -110,7 +111,7 @@ namespace CatalogoApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public ActionResult Put(int id, [FromBody] CategoriaDTO categoriaDto)
+        public async Task<ActionResult> Put(int id, [FromBody] CategoriaDTO categoriaDto)
         {
             try
             {
@@ -119,7 +120,7 @@ namespace CatalogoApi.Controllers
                 var categoria = _mapper.Map<Categoria>(categoriaDto);
 
                 _uof.CategoriaRepository.Update(categoria);
-                _uof.Commit();
+                await _uof.Commit();
 
                 return Ok();
             }
@@ -132,16 +133,16 @@ namespace CatalogoApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public ActionResult<CategoriaDTO> Delete(int id)
+        public async Task<ActionResult<CategoriaDTO>> Delete(int id)
         {
             try
             {
-                var categoria = _uof.CategoriaRepository.GetById(c => c.CategoriaId == id);
+                var categoria = await _uof.CategoriaRepository.GetById(c => c.CategoriaId == id);
 
                 if (categoria is null) return NotFound($"A categoria com id = {id} não foi encontrada");
 
                 _uof.CategoriaRepository.Delete(categoria);
-                _uof.Commit();
+                await _uof.Commit();
 
                 return _mapper.Map<CategoriaDTO>(categoria);
             }
