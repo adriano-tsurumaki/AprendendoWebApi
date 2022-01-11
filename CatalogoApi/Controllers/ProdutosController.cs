@@ -35,11 +35,11 @@ namespace CatalogoApi.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<ProdutoDTO>> Get([FromQuery] ProdutosParameters produtosParameters)
+        public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get([FromQuery] ProdutosParameters produtosParameters)
         {
             try
             {
-                var produtos = _uof.ProdutoRepository.GetProdutos(produtosParameters);
+                var produtos = await _uof.ProdutoRepository.GetProdutos(produtosParameters);
                 var produtosDto = _mapper.Map<List<ProdutoDTO>>(produtos);
 
                 var metadata = new
